@@ -33,6 +33,8 @@ def a(p):
         ast.append({"cmd":"PUSH", "vals":[val]})
     elif cmd == "PRINT":
         ast.append({"cmd":"PRINT", "vals":[val]})
+    elif cmd == "PRINTRAW":
+        ast.append({"cmd":"PRINTRAW", "vals":[val]})
 
 @pg.production("a : INDENTIFIER SPACE INDENTIFIER COMMA SPACE INDENTIFIER")
 @pg.production("a : INDENTIFIER SPACE INDENTIFIER COMMA SPACE NUMBER")
@@ -55,6 +57,9 @@ def b(p):
 
     elif cmd == "PLUS":
         ast.append({"cmd":"PLUS", "vals":[lval, rval]})
+    
+    elif cmd == "MUT":
+        ast.append({"cmd":"MUT", "vals":[lval, rval]})
 
 def getVal(env, val):
     if val["type"] == "const":
@@ -77,6 +82,9 @@ def exec():
         if current_cmd == "PLUS":
             env[current_vals[0]["val"]] += getVal(env, current_vals[1])
             
+        if current_cmd == "MUT":
+            env[current_vals[0]["val"]] *= getVal(env, current_vals[1])
+
         if current_cmd == "JMP":
             cursor = int(getVal(env, current_vals[0]))
             continue
@@ -99,9 +107,14 @@ def exec():
             for _ in range(c):
                 print(chr(int(stack.pop())), end="")
 
+        if current_cmd == "PRINTRAW":
+            c = int(getVal(env, current_vals[0]))
+            for _ in range(c):
+                print(int(stack.pop()), end="")
+
         if current_cmd == "EQU":
             #print(env[current_vals[0]["val"]], getVal(env, current_vals[1]))
-            if env[current_vals[0]["val"]] == getVal(env, current_vals[1]):
+            if getVal(env, current_vals[0]) == getVal(env, current_vals[1]):
                 flag = 1
             else:
                 flag = 0
