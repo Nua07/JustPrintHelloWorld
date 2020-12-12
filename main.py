@@ -1,4 +1,5 @@
 import json
+import sys
 from rply import LexerGenerator
 from rply import ParserGenerator
 
@@ -38,9 +39,9 @@ def a(p):
 def b(p):
     cmd = p[0].getstr()
     
-    lval = p[2].getstr()
-    rval = {}
-    
+    if p[2].gettokentype() == "INDENTIFIER":
+        lval = {"type":"var", "val":p[2].getstr()}
+
     if p[5].gettokentype() == "INDENTIFIER":
         rval = {"type":"var", "val":p[5].getstr()}
     elif p[5].gettokentype() == "NUMBER":
@@ -71,10 +72,10 @@ def exec():
         current_vals = ast[cursor]["vals"]
         
         if current_cmd == "SET":
-            env[current_vals[0]] = getVal(env, current_vals[1])
+            env[current_vals[0]["val"]] = getVal(env, current_vals[1])
 
         if current_cmd == "PLUS":
-            env[current_vals[0]] += getVal(env, current_vals[1])
+            env[current_vals[0]["val"]] += getVal(env, current_vals[1])
             
         if current_cmd == "JMP":
             cursor = int(getVal(env, current_vals[0]))
@@ -99,7 +100,8 @@ def exec():
                 print(chr(int(stack.pop())), end="")
 
         if current_cmd == "EQU":
-            if env[current_vals[0]] == getVal(env, current_vals[1]):
+            #print(env[current_vals[0]["val"]], getVal(env, current_vals[1]))
+            if env[current_vals[0]["val"]] == getVal(env, current_vals[1]):
                 flag = 1
             else:
                 flag = 0
@@ -108,7 +110,7 @@ def exec():
 lexer = lg.build()
 parser = pg.build()
 
-f=open("a.phw", "r")
+f=open(sys.argv[1], "r")
 code = f.read()
 f.close()
 
