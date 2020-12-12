@@ -77,7 +77,7 @@ def exec():
 lexer = lg.build()
 parser = pg.build()
 
-f=open("a.nc", "r")
+f=open("a.phw", "r")
 code = f.read()
 f.close()
 
