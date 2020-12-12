@@ -24,6 +24,10 @@ def a(p):
 
     if cmd == "JMP":
         ast.append({"cmd":"JMP", "vals":[val]})
+    if cmd == "JMPTRUE":
+        ast.append({"cmd":"JMPTRUE", "vals":[val]})
+    if cmd == "JMPFALSE":
+        ast.append({"cmd":"JMPFALSE", "vals":[val]})
     elif cmd == "PUSH":
         ast.append({"cmd":"PUSH", "vals":[val]})
     elif cmd == "PRINT":
@@ -33,6 +37,7 @@ def a(p):
 @pg.production("a : INDENTIFIER SPACE INDENTIFIER COMMA SPACE NUMBER")
 def b(p):
     cmd = p[0].getstr()
+    
     lval = p[2].getstr()
     rval = {}
     
@@ -44,6 +49,12 @@ def b(p):
     if cmd == "SET":
         ast.append({"cmd":"SET", "vals":[lval, rval]})
 
+    elif cmd == "EQU":
+        ast.append({"cmd":"EQU", "vals":[lval, rval]})
+
+    elif cmd == "PLUS":
+        ast.append({"cmd":"PLUS", "vals":[lval, rval]})
+
 def getVal(env, val):
     if val["type"] == "const":
         return val["val"]
@@ -54,24 +65,44 @@ def exec():
     cursor = 0
     env = {}
     stack = []
+    flag = 0
     while cursor < len(ast):
         current_cmd = ast[cursor]["cmd"]
         current_vals = ast[cursor]["vals"]
         
         if current_cmd == "SET":
             env[current_vals[0]] = getVal(env, current_vals[1])
+
+        if current_cmd == "PLUS":
+            env[current_vals[0]] += getVal(env, current_vals[1])
             
         if current_cmd == "JMP":
             cursor = int(getVal(env, current_vals[0]))
             continue
+
+        if current_cmd == "JMPTRUE":
+            if flag == 1:
+                cursor = int(getVal(env, current_vals[0]))
+                continue
             
+        if current_cmd == "JMPFALSE":
+            if flag == 0:
+                cursor = int(getVal(env, current_vals[0]))
+                continue
+
         if current_cmd == "PUSH":
             stack.append(getVal(env, current_vals[0]))
         
         if current_cmd == "PRINT":
             c = int(getVal(env, current_vals[0]))
-            for i in range(c):
+            for _ in range(c):
                 print(chr(int(stack.pop())), end="")
+
+        if current_cmd == "EQU":
+            if env[current_vals[0]] == getVal(env, current_vals[1]):
+                flag = 1
+            else:
+                flag = 0
         cursor += 1
         
 lexer = lg.build()
